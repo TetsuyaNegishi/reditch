@@ -1,6 +1,6 @@
 {
   "name": "reditch",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "画像注釈デスクトップアプリ（矢印・文字・図形・モザイク）",
   "main": "electron/main.cjs",
   "scripts": {
@@ -26,8 +26,18 @@
     "mac": {
       "category": "public.app-category.graphics-design",
       "target": [
-        { "target": "dmg", "arch": ["arm64"] },
-        { "target": "zip", "arch": ["arm64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
       ]
     },
     "directories": {
