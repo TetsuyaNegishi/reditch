@@ -5,7 +5,7 @@
   "main": "electron/main.cjs",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --mac",
+    "dist": "electron-builder --mac --publish never",
     "pack": "electron-builder --dir"
   },
   "author": "",
