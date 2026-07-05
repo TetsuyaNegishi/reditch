@@ -25,7 +25,10 @@
     ],
     "mac": {
       "category": "public.app-category.graphics-design",
-      "target": ["dmg", "zip"]
+      "target": [
+        { "target": "dmg", "arch": ["arm64"] },
+        { "target": "zip", "arch": ["arm64"] }
+      ]
     },
     "directories": {
       "output": "dist"
