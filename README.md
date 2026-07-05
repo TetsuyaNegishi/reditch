@@ -22,6 +22,8 @@ npm run dist   # electron-builder --mac : .dmg / .zip を dist/ に生成
 npm run pack   # electron-builder --dir : dist/mac 配下に .app を生成（署名・圧縮なしの動作確認用）
 ```
 
+`v*.*.*` タグをpushするとGitHub Actionsが自動でビルド・GitHub Releaseへの公開まで行う。手順は[docs/RELEASE.md](docs/RELEASE.md)を参照。
+
 ## Webブラウザで使う
 
 ビルド不要です。ローカルHTTPサーバーでプロジェクトルートを配信して開いてください。
