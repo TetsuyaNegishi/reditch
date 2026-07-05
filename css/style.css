@@ -1,0 +1,453 @@
+/* ==========================================================================
+   Reditch — 画像注釈ツール
+   ダークチャコール + コーラル/ピンクのアクセント
+   ========================================================================== */
+
+:root {
+  /* --- カラーパレット --- */
+  --accent:        #ff4f81;   /* ハートのようなピンク/コーラル */
+  --accent-hover:  #ff6b95;
+  --accent-press:  #e83e6f;
+  --accent-soft:   rgba(255, 79, 129, 0.15);
+  --accent-ring:   rgba(255, 79, 129, 0.45);
+
+  /* ダークチャコール */
+  --bg-toolbar:    #26282e;
+  --bg-toolbar-2:  #2d3038;
+  --bg-stage-a:    #1a1c20;
+  --bg-stage-b:    #23262c;
+  --bg-status:     #1f2126;
+  --bg-elevated:   #34373f;
+
+  --border-soft:   rgba(255, 255, 255, 0.09);
+  --border-mid:    rgba(255, 255, 255, 0.16);
+  --sep:           rgba(255, 255, 255, 0.10);
+
+  --text:          #eceef2;
+  --text-dim:      #a3a8b4;
+  --text-faint:    #6f7581;
+
+  --shadow-canvas: 0 18px 50px -12px rgba(0, 0, 0, 0.65),
+                   0 4px 14px rgba(0, 0, 0, 0.35);
+
+  --radius:        8px;
+  --radius-sm:     6px;
+  --t:             0.15s ease;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #app { height: 100%; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+               "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  background: var(--bg-stage-a);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   ツールバー
+   ========================================================================== */
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: linear-gradient(180deg, var(--bg-toolbar-2), var(--bg-toolbar));
+  border-bottom: 1px solid var(--border-soft);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  flex-wrap: wrap;
+  z-index: 10;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.toolbar-sep {
+  width: 1px;
+  align-self: stretch;
+  min-height: 26px;
+  background: var(--sep);
+  margin: 0 2px;
+}
+
+.toolbar-spacer { flex: 1 1 auto; }
+
+/* --- ツール / アクションボタン共通 --- */
+.tool-btn,
+.action-btn {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  padding: 7px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+  transition: background var(--t), color var(--t), border-color var(--t),
+              transform var(--t), box-shadow var(--t);
+}
+
+.tool-btn svg,
+.action-btn svg { display: block; }
+
+.tool-btn:hover,
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+}
+
+.tool-btn:active,
+.action-btn:active { transform: translateY(1px); }
+
+.tool-btn:focus-visible,
+.action-btn:focus-visible,
+.swatch:focus-visible,
+select:focus-visible,
+.link-btn:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+
+/* アクティブなツール = アクセント色 */
+.tool-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 2px 8px -1px var(--accent-ring);
+}
+
+.tool-btn.active:hover {
+  background: var(--accent-hover);
+  color: #fff;
+}
+
+/* ラベル付きボタン（開く / コピー / 保存） */
+.action-btn.labeled {
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.action-btn.labeled span { letter-spacing: 0.01em; }
+
+/* 保存 = プライマリ = アクセント色で目立たせる */
+.action-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 10px -2px var(--accent-ring);
+}
+
+.action-btn.primary:hover {
+  background: var(--accent-hover);
+  color: #fff;
+}
+
+.action-btn.primary:active { background: var(--accent-press); }
+
+/* disabled（JS が undo/redo で切り替え） */
+.tool-btn:disabled,
+.action-btn:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: transparent;
+  color: var(--text-faint);
+  box-shadow: none;
+  transform: none;
+}
+
+/* ==========================================================================
+   カラースウォッチ
+   ========================================================================== */
+
+#color-swatches { gap: 6px; }
+
+.swatch {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--c);
+  border: 1px solid rgba(255, 255, 255, 0.14); /* 白スウォッチも視認できる薄い枠 */
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  transition: transform var(--t), box-shadow var(--t);
+}
+
+.swatch:hover { transform: scale(1.12); }
+
+/* 選択中: 白リング + わずかに拡大 */
+.swatch.active {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px var(--bg-toolbar),
+              0 0 0 4px #fff;
+}
+
+/* ==========================================================================
+   サイズコントロール（線の太さ / 文字サイズ）
+   ========================================================================== */
+
+#size-controls { gap: 8px; }
+
+.size-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.size-icon {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-dim);
+  width: 16px;
+  text-align: center;
+}
+
+#size-controls select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 5px 26px 5px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--t), background var(--t);
+  /* カスタム矢印 */
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
+    linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+#size-controls select:hover { border-color: var(--border-mid); }
+
+#size-controls select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* ==========================================================================
+   ステージ（キャンバス領域）
+   ========================================================================== */
+
+#stage {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  /* 透過画像用の市松模様（CSS グラデーションのみ） */
+  background-color: var(--bg-stage-a);
+  background-image:
+    linear-gradient(45deg, var(--bg-stage-b) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--bg-stage-b) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--bg-stage-b) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--bg-stage-b) 75%);
+  background-size: 24px 24px;
+  background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+}
+
+#canvas-wrapper {
+  position: relative; /* 内部の絶対配置（text-editor 等）の基準 — 必須 */
+  line-height: 0;
+}
+
+#canvas {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 150px);
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: var(--shadow-canvas);
+  cursor: crosshair;
+}
+
+/* select ツールのみデフォルトカーソル、他は crosshair */
+#canvas[data-tool="select"] { cursor: default; }
+
+/* 画像未読み込み時は canvas を隠して drop-hint を見せる — 必須 */
+body:not(.has-image) #canvas { display: none; }
+
+/* ==========================================================================
+   テキストエディタ（JS が left/top/font-size/color をインライン設定）
+   デフォルト非表示・絶対配置・透過背景など機能制約を厳守
+   ========================================================================== */
+
+#text-editor {
+  display: none;
+  position: absolute;
+  background: transparent;
+  border: 1px dashed var(--accent);
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  white-space: pre;
+  font-weight: bold;
+  min-width: 40px;
+  padding: 0;
+  margin: 0;
+  line-height: 1.1;
+  font-family: inherit;
+  caret-color: var(--accent);
+}
+
+/* ==========================================================================
+   ドロップヒント
+   ========================================================================== */
+
+#drop-hint {
+  color: var(--text-dim);
+  text-align: center;
+  padding: 56px 72px;
+  border: 2px dashed var(--border-mid);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color var(--t), background var(--t),
+              color var(--t), transform var(--t);
+  max-width: 90vw;
+}
+
+.drop-hint-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.drop-icon {
+  font-size: 56px;
+  line-height: 1;
+  margin-bottom: 8px;
+  filter: grayscale(0.15);
+  transition: transform var(--t);
+}
+
+.drop-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.drop-sub {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+.link-btn {
+  appearance: none;
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 0;
+  transition: color var(--t);
+}
+
+.link-btn:hover { color: var(--accent-hover); }
+
+/* --- ドラッグ中の視覚フィードバック（io.js が body.dragging を付与） --- */
+body.dragging #drop-hint {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  transform: scale(1.02);
+}
+
+body.dragging .drop-title { color: var(--accent-hover); }
+
+body.dragging .drop-icon { transform: translateY(-4px) scale(1.05); }
+
+/* 画像読み込み済みでもドラッグ中はステージ全体に受け入れ枠を表示 */
+body.dragging #stage {
+  box-shadow: inset 0 0 0 3px var(--accent-ring);
+}
+
+/* ==========================================================================
+   ステータスバー（控えめ）
+   ========================================================================== */
+
+#status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px;
+  background: var(--bg-status);
+  border-top: 1px solid var(--border-soft);
+  color: var(--text-faint);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+
+#status-message { color: var(--text-dim); }
+
+#image-info {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Electron専用UI（キャプチャボタン・ドラッグアウト）
+   ========================================================================== */
+
+/* Web版（electronAPIなし）では非表示。main.jsがbodyにis-electronを付与する */
+.electron-only { display: none !important; }
+body.is-electron .electron-only { display: inline-flex !important; }
+
+/* ドラッグアウトハンドル: 編集結果を他アプリへドラッグして渡すタブ */
+#drag-out {
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--bg-elevated);
+  border: 1px dashed var(--border-mid);
+  border-radius: var(--radius-sm);
+  cursor: grab;
+  user-select: none;
+  transition: color var(--t), border-color var(--t), background var(--t);
+}
+
+#drag-out:hover {
+  color: var(--accent-hover);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+#drag-out:active { cursor: grabbing; }
+
+#drag-out svg { opacity: 0.8; }

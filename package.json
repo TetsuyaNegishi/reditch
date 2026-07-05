@@ -1,0 +1,34 @@
+{
+  "name": "reditch",
+  "version": "1.0.0",
+  "description": "画像注釈デスクトップアプリ（矢印・文字・図形・モザイク）",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --mac",
+    "pack": "electron-builder --dir"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "dev.reditch.app",
+    "productName": "Reditch",
+    "files": [
+      "index.html",
+      "css/**",
+      "js/**",
+      "electron/**"
+    ],
+    "mac": {
+      "category": "public.app-category.graphics-design",
+      "target": ["dmg", "zip"]
+    },
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
