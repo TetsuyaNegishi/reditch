@@ -1,6 +1,6 @@
 {
   "name": "reditch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "画像注釈デスクトップアプリ（矢印・文字・図形・モザイク）",
   "main": "electron/main.cjs",
   "scripts": {

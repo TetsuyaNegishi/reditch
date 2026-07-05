@@ -11,4 +11,9 @@ module.exports = async function afterSign(context) {
   const appPath = path.join(context.appOutDir, `${appName}.app`);
 
   execFileSync('codesign', ['--force', '--deep', '--sign', '-', appPath]);
+
+  // --deep has been observed to silently skip sealing resources for some
+  // nested frameworks/helpers, which reproduces the "damaged" error at
+  // install time. Fail the build loudly instead of shipping a broken seal.
+  execFileSync('codesign', ['--verify', '--deep', '--strict', appPath]);
 };
