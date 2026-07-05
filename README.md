@@ -6,7 +6,20 @@
 - 完全ローカル動作（画像データは外部送信されません）
 - デスクトップ版では範囲指定スクリーンショット・ドラッグアウト共有などのOS統合機能を利用可能
 
-## 起動方法（デスクトップアプリ）
+## インストール（macOSアプリ）
+
+Homebrewで導入できます（Apple Silicon Mac向け）。
+
+```bash
+brew install --cask tetsuyanegishi/reditch/reditch
+```
+
+または[Releasesページ](https://github.com/TetsuyaNegishi/reditch/releases)から `.dmg` をダウンロードして手動でインストールすることもできます。
+
+> **Note**
+> 現時点ではApple Developer IDによるコード署名・公証を行っていない未署名ビルドです。初回起動時にGatekeeperの警告が出る場合があります。
+
+## 起動方法（デスクトップアプリ・開発用）
 
 ```bash
 npm install
