@@ -45,4 +45,14 @@ git push origin :refs/tags/v1.1.0
 
 ## Homebrew配布について
 
-Homebrew Cask経由での配布は別途検討中（未着手）。本ドキュメントのリリース手順で生成されるdmg/zipとSHA256SUMS.txtは、Cask定義ファイル作成時にそのまま利用できる想定。
+Homebrew Cask経由での配布は [TetsuyaNegishi/homebrew-reditch](https://github.com/TetsuyaNegishi/homebrew-reditch) （tapリポジトリ）の `Casks/reditch.rb` で行っている。
+
+```bash
+brew install --cask tetsuyanegishi/reditch/reditch
+```
+
+新バージョンをリリースしたら、tapリポジトリ側のCaskファイルを更新する必要がある（自動化はしていないため手動対応）。
+
+1. 上記のリリース手順でGitHub Releaseにdmgとチェックサムが公開されるのを待つ
+2. `homebrew-reditch` リポジトリの `Casks/reditch.rb` を編集し、`version` と `sha256`（`SHA256SUMS.txt` 内のdmgのハッシュ値）を新しいものに更新する
+3. `brew audit --cask tetsuyanegishi/reditch/reditch` で構文エラーがないことを確認してからcommit・push する
