@@ -2,8 +2,10 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
+    paths:
+      - "package.json"
   workflow_dispatch:
 
 permissions:
@@ -25,21 +27,46 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Determine release tag
+        id: version
+        run: |
+          set -e
+          # package.json の version からタグを決定し、既存タグがなければ CI がタグを切って push する
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v$VERSION"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping release."
+            SHOULD_BUILD=false
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag "$TAG"
+            git push origin "$TAG"
+            SHOULD_BUILD=true
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "should_build=$SHOULD_BUILD" >> "$GITHUB_OUTPUT"
+
       - name: Install dependencies
+        if: steps.version.outputs.should_build == 'true'
         run: npm ci
 
       - name: Build macOS app (dmg/zip, arm64)
+        if: steps.version.outputs.should_build == 'true'
         run: npm run dist
 
       - name: Generate checksums
+        if: steps.version.outputs.should_build == 'true'
         run: |
           cd dist
           shasum -a 256 *.dmg *.zip > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
       - name: Create GitHub Release
+        if: steps.version.outputs.should_build == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
           files: |
             dist/*.dmg
             dist/*.zip
